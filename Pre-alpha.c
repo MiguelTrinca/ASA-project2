@@ -2,10 +2,13 @@
 #include <stdlib.h>
 #include <math.h>
 
+/*
+  Fiz cenas so para te ensinar a usar git
+*/
 // Ver aulas 10 e 11 onde tem codigo de ford-fulkerson e edmonds-karp
 // Ver aula 7 onde esta a BFS
 
-//Nota: O Edmonds-Karp e um ford-fulkerson, no entanto temos que fazer BFS para descobrir os caminhos de aumento, 
+//Nota: O Edmonds-Karp e um ford-fulkerson, no entanto temos que fazer BFS para descobrir os caminhos de aumento,
 //  isto e os caminhos mais curtos
 
 
@@ -35,7 +38,7 @@ Link **adj_list;
 int *level;
 
 void init_list(Link *l){
-    l = NULL; 
+    l = NULL;
 }
 
 Link* push_end(Link *l, Edge e){
@@ -58,7 +61,7 @@ void init_graph(int vertex){
 void addEdge(int u, int v, int C){
     Edge a = (struct edge)malloc(sizeof(struct edge *));
     Edge b = (struct edge)malloc(sizeof(struct edge *));
-    
+
     a.id = v;
     a.flow = 0;
     a.cap = C;
@@ -69,14 +72,14 @@ void addEdge(int u, int v, int C){
     b.cap = C;
 //    b.rev = length(adj_list[v]);
 
-    adj_list[u] = push_end(adj_list[u], a);    
-    adj_list[v] = push_end(adj_list[u], b); //reverse    
+    adj_list[u] = push_end(adj_list[u], a);
+    adj_list[v] = push_end(adj_list[u], b); //reverse
 }
- 
+
 
 int main(){
     int V;
-    int m;          //linhas  
+    int m;          //linhas
     int n;          //colunas
     scanf("%d", &m);
     scanf("%d", &n);
