@@ -36,6 +36,7 @@ typedef struct list_t {
   Link back;
 } list_t; // list type
 
+
 /*
  * Global
  */
@@ -108,7 +109,60 @@ void print_list_reverse(list_t *list){
  * Queue Operations
  */
 
+/*Queue de inteiros*/
+typedef struct queue{
+  int i;
+  struct queue *next;
+} *Queue;
 
+Queue Q;
+
+void init_Queue(){
+  Q = NULL;
+}
+
+void Queue_append(int i){
+    Queue new = (Queue) malloc(sizeof(struct queue));
+ 
+    Queue last = Q; 
+    
+    new->i = i;
+ 
+    new->next = NULL;
+ 
+    if (Q == NULL)
+    {
+       Q = new;
+       return;
+    }  
+      
+    while (last->next != NULL)
+        last = last->next;
+  
+    last->next = new;
+    return;    
+}
+
+int Queue_is_empty(){
+  return Q == NULL;
+}
+
+int Queue_front(){
+  return Q->i;
+}
+
+void Queue_pop_front() {
+    Queue tmp = Q;            
+    if (tmp == NULL) 
+      return;            
+    Q = tmp->next;                   
+    free (tmp);                    
+}
+void print_Queue(){
+    Queue q;
+    for (q = Q; q != NULL; q=q->next)
+        printf("%d\n", q->i);
+}
 
 /*
  *  Graph Operation
@@ -145,7 +199,6 @@ void addEdge(int u, int v, int C){
 /*
  * Dinic's Algorithm
  */
-
 /*
 int BFS(int s, int t){
   for (int i = 0 ; i < V ; i++)
@@ -153,23 +206,22 @@ int BFS(int s, int t){
 
   level[s] = 0;  // Level of source vertex
  
-   Criar a queue Q
-  list< int > q;
-  q.push_back(s);
- 
-
+  init_Queue();
+   
+  Queue_append(s);
   
-  while (!empty(Q)){
-    int u = front(Q);
-    pop_front(Q);
-    for (l = adj[u]->head; i != NULL; l=l->next){
+  link l;
+  while (!is_empty()){
+    int u = front();
+    pop_front();
+    for (l = adj[u]->head; l != NULL; l=l->next){
       Edge e = l->e;
       if (level[e.id] < 0  && e.flow < e.cap){
                 // Level of current vertex is,
                 // level of parent + 1
         level[e.id] = level[u] + 1;
  
-        push_back(Q, e.id);
+        Queue_append(e.id);
         }
       }
     }
