@@ -96,7 +96,8 @@ void push_back(list_t *list, Edge e){
 void print_list(list_t *list){
   printf("printing list: ");
   Link l;
-  for (l=list->head; l!=NULL; l=l->next) printf("%d>", l->e->id);
+  for (l=list->head; l!=NULL; l=l->next) 
+    printf("%d>", l->e->id);
   printf("\n");
 }
 
@@ -315,7 +316,7 @@ int main(){
     /* input 3: capacidade dos vertices do target (pretos) */
     for(i=1; i < V-1; i++){
       scanf("%d", &cap);
-      addEdge(i, V, cap);
+      addEdge(i, V-1, cap);
 
       /*  Otimizacao: Mandar logo o fluxo total. (pois este caminho {s,i,t} e o menor caminho)
       1 - Comparar a capacidade lida do vertice source -> i e i->target.
@@ -347,5 +348,9 @@ int main(){
         addEdge(j*n, j*n+n, cap);
         addEdge(j*n+n, j*n, cap);
       }
+    }
+    for(i = 0; i<V; i++){
+      printf("%d\n", i); 
+      print_list(adj_list[i]);
     }
 }
