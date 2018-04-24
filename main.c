@@ -315,7 +315,7 @@ int main(){
     /* input 3: capacidade dos vertices do target (pretos) */
     for(i=1; i < V-1; i++){
       scanf("%d", &cap);
-      addEdge(V, i, cap);
+      addEdge(i, V, cap);
 
       /*  Otimizacao: Mandar logo o fluxo total. (pois este caminho {s,i,t} e o menor caminho)
       1 - Comparar a capacidade lida do vertice source -> i e i->target.
