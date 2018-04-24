@@ -12,7 +12,7 @@
 
 /*TODO
     Ler o input 4 e 5 o 4 esta a dar problemas
-    Implementar a otimizacao 
+    Implementar a otimizacao
     SendFlow temos que pensar de maneira diferente. Nao da para fazer como ele esta
     a fazer.
     MaxFlow
@@ -126,24 +126,24 @@ void init_Queue(){
 
 void Queue_append(int i){
     Queue new = (Queue) malloc(sizeof(struct queue));
- 
-    Queue last = Q; 
-    
+
+    Queue last = Q;
+
     new->i = i;
- 
+
     new->next = NULL;
- 
+
     if (Q == NULL)
     {
        Q = new;
        return;
-    }  
-      
+    }
+
     while (last->next != NULL)
         last = last->next;
-  
+
     last->next = new;
-    return;    
+    return;
 }
 
 int Queue_is_empty(){
@@ -155,11 +155,11 @@ int Queue_front(){
 }
 
 void Queue_pop_front() {
-    Queue tmp = Q;            
-    if (tmp == NULL) 
-      return;            
-    Q = tmp->next;                   
-    free (tmp);                    
+    Queue tmp = Q;
+    if (tmp == NULL)
+      return;
+    Q = tmp->next;
+    free (tmp);
 }
 void print_Queue(){
     Queue q;
@@ -169,7 +169,7 @@ void print_Queue(){
 
 /*
  *  Graph Operation
- */  
+ */
 
 void init_graph(int vertex){
     adj_list = (list_t **) calloc(vertex+1, sizeof(list_t*));     // A source vai ser 0 e o target vai ser V+1
@@ -208,11 +208,11 @@ int BFS(int s, int t){
       level[i] = -1;
 
   level[s] = 0;  // Level of source vertex
- 
+
   init_Queue();
-   
+
   Queue_append(s);
-  
+
   Link l;
   while (!Queue_is_empty()){
     int u = Queue_front();
@@ -223,7 +223,7 @@ int BFS(int s, int t){
                 // Level of current vertex is,
                 // level of parent + 1
         level[e->id] = level[u] + 1;
- 
+
         Queue_append(e->id);
         }
       }
@@ -243,8 +243,8 @@ int sendFlow(int u, int flow, int t, int start[]){
   // Traverse all adjacent edges one -by - one.
   for (  ; start[u] < adj[u].size(); start[u]++){
     // Pick next edge from adjacency list of u
-    Edge e = adj[u][start[u]]; 
-                                 
+    Edge e = adj[u][start[u]];
+
     if (level[e.v] == level[u]+1 && e.flow < e.C){
       // find minimum flow from u to t
       int curr_flow = min(flow, e.C - e.flow);
@@ -275,7 +275,7 @@ int DinicMaxflow(int s, int t){
   while (BFS(s, t) == 1){
     // store how many edges are visited
     // from V { 0 to V }
-    
+
     //int *start = new int[V+1];
     int start[V+1];
 
@@ -300,7 +300,7 @@ int main(){
     /* input 1: dims da matriz */
     scanf("%d %d", &m, &n);
 
-    /* Number of vertexs*/    
+    /* Number of vertexs*/
     V = m*n + 2;
 
     /* initialize graph with +2 vertices for the source and target*/
@@ -311,42 +311,41 @@ int main(){
       scanf("%d", &cap);
       addEdge(0, i, cap);
     }
-  
+
     /* input 3: capacidade dos vertices do target (pretos) */
     for(i=1; i < V-1; i++){
       scanf("%d", &cap);
       addEdge(V, i, cap);
-      
+
       /*  Otimizacao: Mandar logo o fluxo total. (pois este caminho {s,i,t} e o menor caminho)
       1 - Comparar a capacidade lida do vertice source -> i e i->target.
       2 - Mandar o flow total da capacidade minima.*/
-      
+
      if(adj_list[V]->head->e->cap <= adj_list[0]->head->e->cap){
        //sendFlow(cap);
      }
      else {
-       //sendFlow(adj_list[0].head.e.cap);       
+       //sendFlow(adj_list[0].head.e.cap);
      }
-   
+
     }
 
     /* input 4: capacidade entre vertices na horizontal */
     //Esta a dar segfault
-    i=1;
-    j=1;
-    while(i < n){
-      scanf("%d", &cap);
-      addEdge(j, j+1, cap);
-      if(i == n-1 && j != V-2){
-        i = 1;
-        j *= 2;
+    for (i=1;i<n;i++) { /* itera nas linhas */
+      for (j=1;j<m-1;j++){ /* itera nas colunas */
+        scanf("%d", &cap);
+        addEdge(n*j, n*j+1, cap);
+        addEdge(n*j+1, n*j, cap);
       }
-      i++;
-      j++;
     }
-    
+
     /* input 5: capacidade entre vertices na vertical */
-    
+    for (i=1;i<n-1;i++) { /* itera nas linhas */
+      for (j=1;j<m;j++){ /* itera nas colunas */
+        scanf("%d", &cap);
+        addEdge(j*n, j*n+n, cap);
+        addEdge(j*n+n, j*n, cap);
+      }
+    }
 }
-
-
