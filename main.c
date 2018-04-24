@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <limits.h>
+
+# define min(a,b) (((a)<(b))?(a):(b))
+
 
 /*
   Otimizacao! Quando estamos a ler o input podemos logo descobrir os caminhos e flows de distancia 3.
@@ -8,10 +12,9 @@
 
 /*TODO
     Ler o input 4 e 5 o 4 esta a dar problemas
-    Implementar a otimizacao
-    Fazer funcoes para a Queue. (Ir ver a funcao BFS ver que funcoes e que precisa)
-    BFS esta quase so precisa da Queue.
-    SendFlow
+    Implementar a otimizacao 
+    SendFlow temos que pensar de maneira diferente. Nao da para fazer como ele esta
+    a fazer.
     MaxFlow
 */
 
@@ -199,7 +202,7 @@ void addEdge(int u, int v, int C){
 /*
  * Dinic's Algorithm
  */
-/*
+
 int BFS(int s, int t){
   for (int i = 0 ; i < V ; i++)
       level[i] = -1;
@@ -210,25 +213,84 @@ int BFS(int s, int t){
    
   Queue_append(s);
   
-  link l;
-  while (!is_empty()){
-    int u = front();
-    pop_front();
-    for (l = adj[u]->head; l != NULL; l=l->next){
+  Link l;
+  while (!Queue_is_empty()){
+    int u = Queue_front();
+    Queue_pop_front();
+    for (l = adj_list[u]->head; l != NULL; l=l->next){
       Edge e = l->e;
-      if (level[e.id] < 0  && e.flow < e.cap){
+      if (level[e->id] < 0  && e->flow < e->cap){
                 // Level of current vertex is,
                 // level of parent + 1
-        level[e.id] = level[u] + 1;
+        level[e->id] = level[u] + 1;
  
-        Queue_append(e.id);
+        Queue_append(e->id);
         }
       }
     }
     // IF we can not reach to the sink we
     // return false else true
   return level[t] < 0 ? 0 : 1 ;
+}
+
+
+
+int sendFlow(int u, int flow, int t, int start[]){
+  // Sink reached
+  if (u == t)
+      return flow;}
+/*
+  // Traverse all adjacent edges one -by - one.
+  for (  ; start[u] < adj[u].size(); start[u]++){
+    // Pick next edge from adjacency list of u
+    Edge e = adj[u][start[u]]; 
+                                 
+    if (level[e.v] == level[u]+1 && e.flow < e.C){
+      // find minimum flow from u to t
+      int curr_flow = min(flow, e.C - e.flow);
+     int temp_flow = sendFlow(e.v, curr_flow, t, start);
+     // flow is greater than zero
+     if (temp_flow > 0){
+       // add flow  to current edge
+        e.flow += temp_flow;
+       // subtract flow from reverse edge
+       // of current edge
+       adj[e.v][e.rev].flow -= temp_flow;
+       return temp_flow;
+      }
+    }
+  }
+    return 0;
 } */
+
+int DinicMaxflow(int s, int t){
+  // Corner case
+  if (s == t)
+      return -1;
+
+  int total = 0;  // Initialize result
+
+  // Augment the flow while there is path
+  // from source to sink
+  while (BFS(s, t) == 1){
+    // store how many edges are visited
+    // from V { 0 to V }
+    
+    //int *start = new int[V+1];
+    int start[V+1];
+
+   // while flow is not zero in graph from S to D
+   int flow;
+    while (flow = sendFlow(s, INT_MAX, t, start))
+
+       // Add path flow to overall flow
+        total += flow;
+  }
+
+  // return maximum flow
+  return total;
+}
+
 
 int main(){
     int m; /*linhas*/
@@ -257,14 +319,14 @@ int main(){
       
       /*  Otimizacao: Mandar logo o fluxo total. (pois este caminho {s,i,t} e o menor caminho)
       1 - Comparar a capacidade lida do vertice source -> i e i->target.
-      2 - Mandar o flow total da capacidade minima.
+      2 - Mandar o flow total da capacidade minima.*/
       
-     if(adj_list[V].head.e.cap <= adj_list[0].head.e.cap){
+     if(adj_list[V]->head->e->cap <= adj_list[0]->head->e->cap){
        //sendFlow(cap);
      }
-     else if(adj_list[V].head.e.cap >= adj_list[0].head.e.cap){
+     else if(adj_list[V]->head->e->cap >= adj_list[0]->head->e->cap){
        //sendFlow(adj_list[0].head.e.cap);       
-     }*/
+     }
    
     }
 
