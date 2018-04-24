@@ -333,7 +333,7 @@ int main(){
     /* input 4: capacidade entre vertices na horizontal */
     //Esta a dar segfault
     for (i=1;i<n;i++) { /* itera nas linhas */
-      for (j=1;j<m-1;j++){ /* itera nas colunas */
+      for (j=1;j<m;j++){ /* itera nas colunas */
         scanf("%d", &cap);
         addEdge(n*j, n*j+1, cap);
         addEdge(n*j+1, n*j, cap);
@@ -341,7 +341,7 @@ int main(){
     }
 
     /* input 5: capacidade entre vertices na vertical */
-    for (i=1;i<n-1;i++) { /* itera nas linhas */
+    for (i=1;i<n;i++) { /* itera nas linhas */
       for (j=1;j<m;j++){ /* itera nas colunas */
         scanf("%d", &cap);
         addEdge(j*n, j*n+n, cap);
