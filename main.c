@@ -324,7 +324,7 @@ int main(){
      if(adj_list[V]->head->e->cap <= adj_list[0]->head->e->cap){
        //sendFlow(cap);
      }
-     else if(adj_list[V]->head->e->cap >= adj_list[0]->head->e->cap){
+     else {
        //sendFlow(adj_list[0].head.e.cap);       
      }
    
