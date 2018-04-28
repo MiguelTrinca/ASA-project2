@@ -26,10 +26,10 @@ typedef struct edge{
     int rev; //https://www.geeksforgeeks.org/dinics-algorithm-maximum-flow/
 } *Edge;
 
-typedef struct node{
+typedef struct list_node{
     Edge e;
-    struct node *prev;
-    struct node *next;
+    struct list_node *prev;
+    struct list_node *next;
 } *Link;
 
 
@@ -63,7 +63,7 @@ list_t* init_list(){
 }
 
 void push_front(list_t *list, Edge e){
-    Link new = (Link) malloc(sizeof(struct node));
+    Link new = (Link) malloc(sizeof(struct list_node));
     new->e = e;
 
     if (list->head == NULL){
@@ -79,7 +79,7 @@ void push_front(list_t *list, Edge e){
 }
 
 void push_back(list_t *list, Edge e){
-  Link new = (Link) malloc(sizeof(struct node));
+  Link new = (Link) malloc(sizeof(struct list_node));
   new->e = e;
   new->next = NULL;
   if (list->back == NULL) {
@@ -96,7 +96,7 @@ void push_back(list_t *list, Edge e){
 void print_list(list_t *list){
   Link l;
   for (l=list->head; l!=NULL; l=l->next)
-    printf("%d ", l->e->id);
+    printf("[%d,%d] ", l->e->id, l->e->cap);
   printf("\n");
 }
 
@@ -111,59 +111,67 @@ void print_list_reverse(list_t *list){
  * Queue Operations
  */
 
+
 /*Queue de inteiros*/
-typedef struct queue{
+typedef struct queue_node{
   int i;
-  struct queue *next;
+  struct queue_node *next;
+  struct queue_node *prev;
 } *Queue;
 
-Queue Q;
+/* contains information about the queue */
+typedef struct queue_t {
+  Queue head;
+  Queue back;
+} queue_t; // list type
+
+//Queue Q;
+queue_t Q;
+
 
 void init_Queue(){
-  Q = NULL;
+  Q.head = NULL;
+  Q.back = NULL;
 }
 
-void Queue_append(int i){
-    Queue new = (Queue) malloc(sizeof(struct queue));
-
-    Queue last = Q;
-
+void Q_append(int i){ /* adds element to the back of the list */
+    Queue new = (Queue) malloc(sizeof(struct queue_node));
     new->i = i;
-
     new->next = NULL;
 
-    if (Q == NULL)
-    {
-       Q = new;
-       return;
+    if (Q.head == NULL) {
+      Q.head = new;
+      new->prev = NULL;
+    } else {
+      new->prev = Q.back;
+      Q.back->next = new;
     }
-
-    while (last->next != NULL)
-        last = last->next;
-
-    last->next = new;
+    Q.back = new;
     return;
 }
 
-int Queue_is_empty(){
-  return Q == NULL;
+int Q_empty(){
+  return (Q.head == NULL);
 }
 
-int Queue_front(){
-  return Q->i;
+int Q_front(){
+  return Q.head->i;
 }
 
-void Queue_pop_front() {
-    Queue tmp = Q;
-    if (tmp == NULL)
-      return;
-    Q = tmp->next;
-    free (tmp);
+int Q_pop() { /* pops from the front */
+  if (Q.head == NULL) return -1;
+  int retVal = Q.head->i;
+  Queue tmp = Q.head;
+  Q.head = Q.head->next;
+  free(tmp);
+  return retVal; /* returns -1 in case of error */
 }
+
 void print_Queue(){
-    Queue q;
-    for (q = Q; q != NULL; q=q->next)
-        printf("%d\n", q->i);
+  Queue q;
+  for (q = Q.head; q != NULL; q=q->next)
+      printf("%d |", q->i);
+  printf("\n");
 }
 
 /*
@@ -197,6 +205,7 @@ void addEdge(int u, int v, int C){
  * Dinic's Algorithm
  */
 
+/* Level Graph construction */
 int BFS(int s, int t){
   for (int i = 0 ; i < V ; i++)
       level[i] = -1;
@@ -205,12 +214,11 @@ int BFS(int s, int t){
 
   init_Queue();
 
-  Queue_append(s);
+  Q_append(s);
 
   Link l;
-  while (!Queue_is_empty()){
-    int u = Queue_front();
-    Queue_pop_front();
+  while (!Q_empty()){
+    int u = Q_front();
     for (l = adj_list[u]->head; l != NULL; l=l->next){
       Edge e = l->e;
       if (level[e->id] < 0  && e->flow < e->cap){
@@ -218,7 +226,7 @@ int BFS(int s, int t){
                 // level of parent + 1
         level[e->id] = level[u] + 1;
 
-        Queue_append(e->id);
+        Q_append(e->id);
         }
       }
     }
@@ -350,4 +358,16 @@ int main(){
       printf("%d: ", i);
       print_list(adj_list[i]);
     }*/
+
+    init_Queue();
+    Q_append(1);
+    Q_append(2);
+    Q_append(3);
+    Q_append(4);
+    print_Queue();
+    printf("removed %d from list\n", Q_pop());
+    printf("removed %d from list\n", Q_pop());
+    printf("removed %d from list\n", Q_pop());
+    printf("removed %d from list\n", Q_pop());
+    print_Queue();
 }
