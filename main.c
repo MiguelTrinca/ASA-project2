@@ -93,10 +93,19 @@ void push_back(list_t *list, Edge e){
   list->size += 1;
 }
 
+/* lists returns the element at a specified position */
+Link element_at(list_t *list, int pos){
+  Link l = list->head;
+  int i;
+  for (i=0;i<pos && l!=NULL;i++) l=l->next;
+  if (l==NULL) return -1;
+  return l;
+}
+
 void print_list(list_t *list){
   Link l;
   for (l=list->head; l!=NULL; l=l->next)
-    printf("[%d,%d] ", l->e->id, l->e->cap);
+    printf("%d |", l->e->id);
   printf("\n");
 }
 
@@ -167,7 +176,7 @@ int Q_pop() { /* pops from the front */
   return retVal; /* returns -1 in case of error */
 }
 
-void print_Queue(){
+void print_Q(){
   Queue q;
   for (q = Q.head; q != NULL; q=q->next)
       printf("%d |", q->i);
@@ -218,7 +227,7 @@ int BFS(int s, int t){
 
   Link l;
   while (!Q_empty()){
-    int u = Q_front();
+    int u = Q_pop();
     for (l = adj_list[u]->head; l != NULL; l=l->next){
       Edge e = l->e;
       if (level[e->id] < 0  && e->flow < e->cap){
@@ -237,33 +246,42 @@ int BFS(int s, int t){
 
 
 
-int sendFlow(int u, int flow, int t, int start[]){
+int sendFlow(int u, int flow, int t, int *start){
   // Sink reached
   if (u == t)
-      return flow;}
-/*
-  // Traverse all adjacent edges one -by - one.
-  for (  ; start[u] < adj[u].size(); start[u]++){
-    // Pick next edge from adjacency list of u
-    Edge e = adj[u][start[u]];
+      return flow;
 
-    if (level[e.v] == level[u]+1 && e.flow < e.C){
+  // Traverse all adjacent edges one-by-one.
+  Link l = element_at(adj_list[u], start[u]);
+  /*int i;
+  for (i=0;i<start[u];i++) l=l->next;*/
+
+
+  /*Edge e = adj_list[u][start[u]];*/
+  for (  ; start[u] < adj_list[u]->size; start[u]++){
+    Edge e = l->e;
+    // Pick next edge from adjacency list of u
+    // Edge e = adj_list[u][start[u]];
+
+    if (level[e->id] == level[u]+1 && e->flow < e->cap){
       // find minimum flow from u to t
-      int curr_flow = min(flow, e.C - e.flow);
-     int temp_flow = sendFlow(e.v, curr_flow, t, start);
-     // flow is greater than zero
-     if (temp_flow > 0){
-       // add flow  to current edge
-        e.flow += temp_flow;
-       // subtract flow from reverse edge
-       // of current edge
-       adj[e.v][e.rev].flow -= temp_flow;
-       return temp_flow;
+      int curr_flow = min(flow, e->cap - e->flow);
+      int temp_flow = sendFlow(e->id, curr_flow, t, start);
+      // flow is greater than zero
+      if (temp_flow > 0){
+        // add flow  to current edge
+        e->flow += temp_flow;
+        // subtract flow from reverse edge
+        // of current edge
+        Link temp = element_at(adj_list[e->id],e->rev);
+        temp->e->flow -= temp_flow;
+        return temp_flow;
       }
     }
+    l=l->next;
   }
     return 0;
-} */
+}
 
 int DinicMaxflow(int s, int t){
   // Corner case
@@ -355,19 +373,21 @@ int main(){
 
     /* for debugging */
     /*for(i = 0; i<V-1; i++){
-      printf("%d: ", i);
-      print_list(adj_list[i]);
-    }*/
+    printf("%d: ", i);
+    print_list(adj_list[i]);
+  }*/
 
+    list_t *l = init_list();
+    
     init_Queue();
     Q_append(1);
     Q_append(2);
     Q_append(3);
     Q_append(4);
-    print_Queue();
+    print_Q();
     printf("removed %d from list\n", Q_pop());
     printf("removed %d from list\n", Q_pop());
     printf("removed %d from list\n", Q_pop());
     printf("removed %d from list\n", Q_pop());
-    print_Queue();
+    print_Q();
 }
