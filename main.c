@@ -94,17 +94,15 @@ void push_back(list_t *list, Edge e){
 }
 
 void print_list(list_t *list){
-  printf("printing list: ");
   Link l;
-  for (l=list->head; l!=NULL; l=l->next) 
-    printf("%d>", l->e->id);
+  for (l=list->head; l!=NULL; l=l->next)
+    printf("%d ", l->e->id);
   printf("\n");
 }
 
 void print_list_reverse(list_t *list){
-  printf("printing list: ");
   Link l;
-  for (l=list->back; l!=NULL; l=l->prev) printf("%d>", l->e->id);
+  for (l=list->back; l!=NULL; l=l->prev) printf("%d |", l->e->id);
   printf("\n");
 }
 
@@ -191,13 +189,8 @@ Edge create_edge(int id, int cap){
 
 
 void addEdge(int u, int v, int C){
-  /*Quando fazemos addEdge temos que por o backward edge tambem. Acho que esta implementacao so poe
-  um vez*/
   Edge a = create_edge(v,C);
-  Edge b = create_edge(u,C);
-
   push_back(adj_list[u], a);
-  push_back(adj_list[u], b); //reverse
 }
 
 /*
@@ -316,7 +309,7 @@ int main(){
     /* input 3: capacidade dos vertices do target (pretos) */
     for(i=1; i < V-1; i++){
       scanf("%d", &cap);
-      addEdge(i, V-1, cap);
+      addEdge(i, V+1, cap);
 
       /*  Otimizacao: Mandar logo o fluxo total. (pois este caminho {s,i,t} e o menor caminho)
       1 - Comparar a capacidade lida do vertice source -> i e i->target.
@@ -333,24 +326,28 @@ int main(){
 
     /* input 4: capacidade entre vertices na horizontal */
     //Esta a dar segfault
-    for (i=1;i<n;i++) { /* itera nas linhas */
+    for (i=0;i<n;i++) { /* itera nas linhas */
       for (j=1;j<m;j++){ /* itera nas colunas */
         scanf("%d", &cap);
-        addEdge(n*j, n*j+1, cap);
-        addEdge(n*j+1, n*j, cap);
+        if (cap > 0) {
+          addEdge(i*m + j, i*m+j+1, cap);
+          addEdge(i*m+j+1, i*m + j, cap);
+        }
       }
     }
 
     /* input 5: capacidade entre vertices na vertical */
-    for (i=1;i<n;i++) { /* itera nas linhas */
-      for (j=1;j<m;j++){ /* itera nas colunas */
+    for (i=0;i<n-1;i++) { /* itera nas linhas */
+      for (j=1;j<=m;j++){  /* itera nas colunas */
         scanf("%d", &cap);
-        addEdge(j*n, j*n+n, cap);
-        addEdge(j*n+n, j*n, cap);
+        addEdge(i*m+j,(i+1)*m+j , cap);
+        addEdge((i+1)*m+j, i*m+j, cap);
       }
     }
-    for(i = 0; i<V; i++){
-      printf("%d\n", i); 
+
+    /* for debugging */
+    /*for(i = 0; i<V-1; i++){
+      printf("%d: ", i);
       print_list(adj_list[i]);
-    }
+    }*/
 }
