@@ -112,6 +112,34 @@ Link element_at(list_t *list, int pos){
   return l;
 }
 
+Edge find_key(int p, int k){
+  int cont;
+  cont = 0;
+  Link l;
+  Edge e;
+  for(l = adj_list[p]->head; l!=NULL; l=l->next){
+    if(cont == k){
+      e = l->e;
+      break;
+    }
+    cont++;
+  }
+  return e;
+}
+
+
+void change_key(int p, int k, int value){
+  int cont;
+  cont = 0;
+  Link l;
+  l = adj_list[p]->head;
+  while(cont != k){
+    l = l->next;
+    cont++;
+  } 
+  l->e->flow -= value;
+}
+
 void print_list(list_t *list){
   Link l;
   printf("list has size %d\n", list->size);
@@ -231,7 +259,9 @@ Edge create_edge(int id, int cap){
 
 void addEdge(int u, int v, int C){
   Edge a = create_edge(v,C);
+  Edge b = create_edge(u,C);
   push_back(adj_list[u], a);
+  push_back(adj_list[v], b);
 }
 
 /*
@@ -281,12 +311,10 @@ int sendFlow(int u, int flow, int t, int *start){
   /*int i;
   for (i=0;i<start[u];i++) l=l->next;*/
 
-
   /*Edge e = adj_list[u][start[u]];*/
   for (  ; start[u] < adj_list[u]->size; start[u]++){
     Edge e = l->e;
-    // Pick next edge from adjacency list of u
-    // Edge e = adj_list[u][start[u]];
+   // Edge e = find_key(u, start[u]);
 
     if (level[e->id] == level[u]+1 && e->flow < e->cap){
       // find minimum flow from u to t
@@ -300,10 +328,11 @@ int sendFlow(int u, int flow, int t, int *start){
         // of current edge
         Link temp = element_at(adj_list[e->id],e->rev);
         temp->e->flow -= temp_flow;
+        //change_key(e->id, e->rev, temp_flow);
         return temp_flow;
       }
     }
-    l=l->next;
+    l= l->next;
   }
   return 0;
 }
@@ -325,14 +354,15 @@ int DinicMaxflow(int s, int t){
     //int *start = new int[V+1];
     /*int start[V+1];*/
     int *start = (int*) calloc(V+1, sizeof(int));
+    //printf("Start[1] = %d\n", start[1]);
 
     // while flow is not zero in graph from S to D
     int flow;
     while (flow = sendFlow(s, INT_MAX, t, start))
-    free(start);
 
     // Add path flow to overall flow
     total += flow;
+    free(start);
   }
 
   // return maximum flow
@@ -341,81 +371,80 @@ int DinicMaxflow(int s, int t){
 
 
 int main(){
-    int m; /*linhas*/
-    int n; /*colunas*/
-    int i, j, cap;
-    int flow = 0;
-
-    /* input 1: dims da matriz */
-    scanf("%d %d", &m, &n);
-
-    lines_n = m;
-    columns_n = n;
-
-    /* Number of vertexs*/
-    V = m*n + 2;
-
-    /* initialize graph with +2 vertices for the source and target*/
-    init_graph(V);
-
-    /*list_t *list = init_list();
-    push_back(list,create_edge(1,1));
-    printf("stuff\n");
-    push_back(list,create_edge(2,2));
-    print_list(list);*/
-
-    /* input 2: capacidade dos vertices da source (pretos) */
-    for(i=1; i < V-1; i++){
+  int m; /*linhas*/
+  int n; /*colunas*/
+  int i, j, cap;
+  int flow = 0;
+  /* input 1: dims da matriz */
+  scanf("%d %d", &m, &n);
+  lines_n = m;
+  columns_n = n;
+  /* Number of vertexs*/
+  V = m*n + 2;
+  /* initialize graph with +2 vertices for the source and target*/
+  init_graph(V);
+  /*list_t *list = init_list();
+  push_back(list,create_edge(1,1));
+  printf("stuff\n");
+  push_back(list,create_edge(2,2));
+  print_list(list);*/
+  /* input 2: capacidade dos vertices da source (pretos) */
+  for(i=1; i < V-1; i++){
+    scanf("%d", &cap);
+    addEdge(0, i, cap);
+  }
+  /* input 3: capacidade dos vertices do target (pretos) */
+  for(i=1; i < V-1; i++){
+    scanf("%d", &cap);
+    addEdge(i, V-1, cap);
+    int *start = (int*) calloc(V+1, sizeof(int));
+    /*  Otimizacao: Mandar logo o fluxo total. (pois este caminho {s,i,t} e o menor caminho)
+    1 - Comparar a capacidade lida do vertice source -> i e i->target.
+    2 - Mandar o flow total da capacidade minima.*/
+   if(cap <= adj_list[0]->head->e->cap) flow += sendFlow(0, cap, V+1, start);
+   else flow += sendFlow(0, adj_list[0]->head->e->cap, V+1, start);
+   print_flow_graph();
+   free(start);
+  }
+  /* input 4: capacidade entre vertices na horizontal */
+  //Esta a dar segfault
+  for (i=0;i<n;i++) { /* itera nas linhas */
+    for (j=1;j<m;j++){ /* itera nas colunas */
       scanf("%d", &cap);
-      addEdge(0, i, cap);
-    }
-
-    /* input 3: capacidade dos vertices do target (pretos) */
-    for(i=1; i < V-1; i++){
-      scanf("%d", &cap);
-      addEdge(i, V-1, cap);
-
-      int *start = (int*) calloc(V+1, sizeof(int));
-
-      /*  Otimizacao: Mandar logo o fluxo total. (pois este caminho {s,i,t} e o menor caminho)
-      1 - Comparar a capacidade lida do vertice source -> i e i->target.
-      2 - Mandar o flow total da capacidade minima.*/
-
-     if(cap <= adj_list[0]->head->e->cap) flow += sendFlow(0, cap, V+1, start);
-     else flow += sendFlow(0, adj_list[0]->head->e->cap, V+1, start);
-     print_flow_graph();
-     free(start);
-
-    }
-
-    /* input 4: capacidade entre vertices na horizontal */
-    //Esta a dar segfault
-    for (i=0;i<n;i++) { /* itera nas linhas */
-      for (j=1;j<m;j++){ /* itera nas colunas */
-        scanf("%d", &cap);
-        if (cap > 0) {
-          addEdge(i*m + j, i*m+j+1, cap);
-          addEdge(i*m+j+1, i*m + j, cap);
-        }
+      if (cap > 0) {
+        addEdge(i*m + j, i*m+j+1, cap);
+        addEdge(i*m+j+1, i*m + j, cap);
       }
     }
-
-    /* input 5: capacidade entre vertices na vertical */
-    for (i=0;i<n-1;i++) { /* itera nas linhas */
-      for (j=1;j<=m;j++){  /* itera nas colunas */
-        scanf("%d", &cap);
-        addEdge(i*m+j,(i+1)*m+j , cap);
-        addEdge((i+1)*m+j, i*m+j, cap);
-      }
+  }
+  /* input 5: capacidade entre vertices na vertical */
+  for (i=0;i<n-1;i++) { /* itera nas linhas */
+    for (j=1;j<=m;j++){  /* itera nas colunas */
+      scanf("%d", &cap);
+      addEdge(i*m+j,(i+1)*m+j , cap);
+      addEdge((i+1)*m+j, i*m+j, cap);
     }
+  }
+  /* for debugging */
+  /*for(i = 0; i<V-1; i++){
+  printf("%d: ", i);
+  print_list(adj_list[i]);
+}*/
+int max_flow = DinicMaxflow(0,V-1);
+printf("max_flow %d\n", max_flow);
 
-    /* for debugging */
-    /*for(i = 0; i<V-1; i++){
-    printf("%d: ", i);
-    print_list(adj_list[i]);
-  }*/
+//  V = 6;
+//  init_graph(6);
+//addEdge(0, 1, 10);
+//addEdge(0, 2, 10);
+//addEdge(1, 3, 4 );
+//addEdge(1, 4, 8 );
+//addEdge(1, 2, 2 );
+//addEdge(2, 4, 9 );
+//addEdge(3, 5, 10 );
+//addEdge(4, 3, 6 );
+//addEdge(4, 5, 10 );
+//  
+//  printf("Maximum Flow %d\n", DinicMaxflow(0,5));
 
-
-  int max_flow = DinicMaxflow(0,V+1);
-  printf("max_flow %d\n", max_flow);
 }
