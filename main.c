@@ -31,8 +31,8 @@
 typedef struct edge{
     int id;
     int flow;
-    int cap; // Capacity
-    int rev; //https://www.geeksforgeeks.org/dinics-algorithm-maximum-flow/
+    int cap; /* Capacity*/
+    int rev; /*https://www.geeksforgeeks.org/dinics-algorithm-maximum-flow/*/
 } *Edge;
 
 typedef struct list_node{
@@ -46,7 +46,7 @@ typedef struct list_t {
   Link head;
   int size;
   Link back;
-} list_t; // list type
+} list_t; /* list type*/
 
 
 /*
@@ -112,33 +112,6 @@ Link element_at(list_t *list, int pos){
   return l;
 }
 
-Edge find_key(int p, int k){
-  int cont;
-  cont = 0;
-  Link l;
-  Edge e;
-  for(l = adj_list[p]->head; l!=NULL; l=l->next){
-    if(cont == k){
-      e = l->e;
-      break;
-    }
-    cont++;
-  }
-  return e;
-}
-
-
-void change_key(int p, int k, int value){
-  int cont;
-  cont = 0;
-  Link l;
-  l = adj_list[p]->head;
-  while(cont != k){
-    l = l->next;
-    cont++;
-  } 
-  l->e->flow -= value;
-}
 
 void print_list(list_t *list){
   Link l;
@@ -171,9 +144,9 @@ typedef struct queue_node{
 typedef struct queue_t {
   Queue head;
   Queue back;
-} queue_t; // list type
+} queue_t; /* list type*/
 
-//Queue Q;
+/*Queue Q;*/
 queue_t Q;
 
 
@@ -227,10 +200,11 @@ void print_Q(){
  */
 
 void init_graph(int vertex){
-    adj_list = (list_t **) calloc(vertex+1, sizeof(list_t*));     // A source vai ser 0 e o target vai ser V+1
+    adj_list = (list_t **) calloc(vertex+1, sizeof(list_t*));     /* A source vai ser 0 e o target vai ser V+1*/
     level = (int *) malloc(sizeof(int)*vertex);
-    for (int id=0; id < vertex+1; id++) {
-        adj_list[id] = init_list();   // Mete todos os ponteiro do array a NULL; Ou seja inicializa as listas
+    int id;
+    for (id=0; id < vertex+1; id++) {
+        adj_list[id] = init_list();   /* Mete todos os ponteiro do array a NULL; Ou seja inicializa as listas*/
     }
 }
 
@@ -270,12 +244,11 @@ void addEdge(int u, int v, int C){
 
 /* Level Graph construction */
 int BFS(int s, int t){
-  int count = 0 ;
-  //printf("Corri a BFS\n");
-  for (int i = 0 ; i < V ; i++)
+  int i;
+  for (i = 0 ; i < V ; i++)
       level[i] = -1;
 
-  level[s] = 0;  // Level of source vertex
+  level[s] = 0;  /* Level of source vertex*/
 
   init_Queue();
 
@@ -284,68 +257,39 @@ int BFS(int s, int t){
   Link l;
   while (!Q_empty()){
     int u = Q_pop();
-    //printf("u = %d\n", u);
-    for (l = adj_list[u]->head; l != NULL; l=l->next){ /*Potencial problema */
-      count++;
+    for (l = adj_list[u]->head; l != NULL; l=l->next){ 
       Edge e = l->e;
-      //printf("level[%d] = %d, flow = %d, capacidade = %d, \n", e->id, level[e->id], e->flow, e->cap);
       if (level[e->id] < 0  && e->flow < e->cap){
-        //printf("Entrei no if\n");
-        // Level of current vertex is,
-        // level of parent + 1
         level[e->id] = level[u] + 1;
 
         Q_append(e->id);
       }
     }
-    //printf("Andei no ciclo dos viznhinhos count = %d\n", count);
-  }
-  // IF we can not reach to the sink we
-  // return false else true
-
- // for(int i =0; i<V; i++){
- //   printf("Valores do level[%d] = %d  ", i, level[i]);
- // }
-
-  //printf("\n");
+   }
   return level[t] < 0 ? 0 : 1 ;
 }
 
 
 
 int sendFlow(int u, int flow, int t, int *start){
-  //printf("sending flow from %d\n", u);
-  // Sink reached
+  /* Target reached*/
   if (u == t)
     return flow;
 
-  // Traverse all adjacent edges one-by-one.
-  /*int i;
-  for (i=0;i<start[u];i++) l=l->next;*/
-  /*Edge e = adj_list[u][start[u]];*/
-
- // printf("Size da lista %d = %d \n",  u, adj_list[u]->size);
   for (  ; start[u] < adj_list[u]->size; start[u]++){
     Link l = element_at(adj_list[u], start[u]);  
     Edge e = l->e;
-   // Edge e = find_key(u, start[u]);
-    //printf("Edge id = %d\n", e->id);
-
+   
     if (level[e->id] == level[u]+1 && e->flow < e->cap){
-      // find minimum flow from u to t
+      /* find minimum flow from u to t*/
       int curr_flow = min(flow, e->cap - e->flow);
-     // printf("Current flow = %d\n", curr_flow);
       int temp_flow = sendFlow(e->id, curr_flow, t, start);
-      //printf("temp_flow = %d\n", temp_flow);
-      // flow is greater than zero
+      /* flow is greater than zero*/
       if (temp_flow > 0){
-        // add flow  to current edge
+        /* add flow  to current edge*/
         e->flow += temp_flow;
-        // subtract flow from reverse edge
-        // of current edge
         Link temp = element_at(adj_list[e->id],e->rev);
         temp->e->flow -= temp_flow;
-        //change_key(e->id, e->rev, temp_flow);
         return temp_flow;
       }
     }
@@ -355,35 +299,24 @@ int sendFlow(int u, int flow, int t, int *start){
 }
 
 int DinicMaxflow(int s, int t){
-  // Corner case
   if (s == t)
       return -1;
 
-  int total = 0;  // Initialize result
-
-  // Augment the flow while there is path
-  // from source to sink
+  int total = 0;
+  /* Augment the flow while there is path
+   from source to target*/
   while (BFS(s, t) == 1){
-    /*print_flow_graph();*/
-    // store how many edges are visited
-    // from V { 0 to V }
-
-    //int *start = new int[V+1];
-    /*int start[V+1];*/
     int *start = (int*) calloc(V+1, sizeof(int));
-    //printf("Start[1] = %d\n", start[1]);
-
-    // while flow is not zero in graph from S to D
+    
+    /* while flow is not zero in graph from S to D*/
     int flow;
-    while (flow = sendFlow(s, INT_MAX, t, start)){
-      // Add path flow to overall flow
+    while ((flow = sendFlow(s, INT_MAX, t, start))){
+      /* Add path flow to overall flow*/
       total += flow;
-     // printf("Total = %d \n", total);
       }
       free(start);
     }
 
-  // return maximum flow
   return total;
 }
 
@@ -403,15 +336,6 @@ void print_output(int max_flow, int m, int n){
     if(j%n == 0){
       printf("\n");
     }
-  //for(i = 1; i<V-1; i++){
-  //  if(level[i]<0){
-  //    printf("P");
-  //  }
-  //  else{
-  //    printf("C");
-  //  }
-  //}
-  //printf("\n");
   }
 }
 
@@ -449,11 +373,9 @@ int main(){
     2 - Mandar o flow total da capacidade minima.*/
    if(cap <= adj_list[0]->head->e->cap) flow += sendFlow(0, cap, V+1, start);
    else flow += sendFlow(0, adj_list[0]->head->e->cap, V+1, start);
-   //print_flow_graph();
    free(start);
   }
   /* input 4: capacidade entre vertices na horizontal */
-  //Esta a dar segfault
   for (i=0;i<n;i++) { /* itera nas linhas */
     for (j=1;j<m;j++){ /* itera nas colunas */
       scanf("%d", &cap);
@@ -478,43 +400,6 @@ int main(){
 }*/
 int max_flow = DinicMaxflow(0,V-1);
 print_output(max_flow, m, n);
-//printf("max_flow %d\n", max_flow);
-//
-////  V = 6;
-////  init_graph(6);
-////addEdge(0, 1, 10);
-////addEdge(0, 2, 10);
-////addEdge(1, 3, 4 );
-////addEdge(1, 4, 8 );
-////addEdge(1, 2, 2 );
-////addEdge(2, 4, 9 );
-////addEdge(3, 5, 10 );
-////addEdge(4, 3, 6 );
-////addEdge(4, 5, 10 );
-////  
-////  printf("Maximum Flow %d\n", DinicMaxflow(0,5));
-
-//V=6;
-//init_graph(6);
-//  
-//  addEdge(0, 1, 16 );
-//  addEdge(0, 2, 13 );
-//  addEdge(1, 2, 10 );
-//  addEdge(1, 3, 12 );
-//  addEdge(2, 1, 4 );
-//  addEdge(2, 4, 14);
-//  addEdge(3, 2, 9 );
-//  addEdge(3, 5, 20 );
-//  addEdge(4, 3, 7 );
-//  addEdge(4, 5, 4);
-
-//for(int i = 0; i<V; i++){
-//  printf("adj_list [%d] =  ", i);
-//  print_list(adj_list[i]);
-//}
-
-//printf("Maximum Flow %d\n", DinicMaxflow(0,5));
-
 return 0;
 }
 
