@@ -15,6 +15,7 @@
 #define CYAN  "\x1B[36m"
 #define WHITE  "\x1B[37m"
 
+#define DEBUGGING 0
 /*
   Otimizacao! Quando estamos a ler o input podemos logo descobrir os caminhos e flows de distancia 3.
 */
@@ -106,8 +107,9 @@ void push_back(list_t *list, Edge e){
 
 /* lists returns the element at a specified position */
 Link element_at(list_t *list, int pos){
-  Link l = list->head;
   int i;
+  Link l = list->head;
+  if (l == NULL) return NULL;
   for (i=0;i<pos && l!=NULL;i++) l=l->next;
   return l;
 }
@@ -115,16 +117,15 @@ Link element_at(list_t *list, int pos){
 
 void print_list(list_t *list){
   Link l;
-  printf("list has size %d\n", list->size);
   for (l=list->head; l!=NULL; l=l->next)
-    printf("%d |", l->e->id);
+      printf("[%d|%d|%d]\t", l->e->id, l->e->flow, l->e->cap);
   printf("\n");
 }
 
 void print_list_reverse(list_t *list){
   Link l;
-  for (l=list->back; l!=NULL; l=l->prev) printf("%d |", l->e->id);
-  printf("\n");
+  if(DEBUGGING) for (l=list->back; l!=NULL; l=l->prev) printf("%d |", l->e->id);
+    if(DEBUGGING) printf("\n");
 }
 
 
@@ -180,9 +181,9 @@ int Q_front(){
 }
 
 int Q_pop() { /* pops from the front */
-  if (Q.head == NULL) return -1;
-  int retVal = Q.head->i;
   Queue tmp = Q.head;
+  int retVal = Q.head->i;
+  if (Q.head == NULL) return -1;
   Q.head = Q.head->next;
   free(tmp);
   return retVal; /* returns -1 in case of error */
@@ -191,8 +192,8 @@ int Q_pop() { /* pops from the front */
 void print_Q(){
   Queue q;
   for (q = Q.head; q != NULL; q=q->next)
-      printf("%d |", q->i);
-  printf("\n");
+      if(DEBUGGING) printf("%d |", q->i);
+  if(DEBUGGING) printf("\n");
 }
 
 /*
@@ -200,9 +201,9 @@ void print_Q(){
  */
 
 void init_graph(int vertex){
+    int id;
     adj_list = (list_t **) calloc(vertex+1, sizeof(list_t*));     /* A source vai ser 0 e o target vai ser V+1*/
     level = (int *) malloc(sizeof(int)*vertex);
-    int id;
     for (id=0; id < vertex+1; id++) {
         adj_list[id] = init_list();   /* Mete todos os ponteiro do array a NULL; Ou seja inicializa as listas*/
     }
@@ -210,14 +211,17 @@ void init_graph(int vertex){
 
 void print_flow_graph(){
   int i,j; /* i-linhas; m-colunas */
-  printf("%sFlow from source", CYAN);
-  printf("%d %d\n", lines_n, columns_n );
+  printf("%sFlow from source\n", CYAN);
+
   for (i=0; i<lines_n; i++) {
     for (j=0; j<columns_n; j++) {
-      printf("%d\t", element_at(adj_list[0],i*columns_n+j)->e->flow);
+      if (element_at(adj_list[0],i*columns_n+j) != NULL)
+        printf("%d\t",element_at(adj_list[0],i*columns_n+j)->e->flow);
+      else printf("0\t");
     }
     printf("\n");
   }
+
   printf("%s\n", NORMAL);
 }
 
@@ -238,6 +242,11 @@ void addEdge(int u, int v, int C){
   push_back(adj_list[v], b);
 }
 
+void addEdgeSource(int u, int v, int C){
+  Edge a = create_edge(v,C);
+  push_back(adj_list[u], a);
+}
+
 /*
  * Dinic's Algorithm
  */
@@ -245,8 +254,12 @@ void addEdge(int u, int v, int C){
 /* Level Graph construction */
 int BFS(int s, int t){
   int i;
-  for (i = 0 ; i < V ; i++)
+  Link l;
+  int u;
+  if(DEBUGGING) printf("BFSing\n");
+  for (i = 0 ; i < V ; i++) {
       level[i] = -1;
+  }
 
   level[s] = 0;  /* Level of source vertex*/
 
@@ -254,14 +267,12 @@ int BFS(int s, int t){
 
   Q_append(s);
 
-  Link l;
   while (!Q_empty()){
-    int u = Q_pop();
-    for (l = adj_list[u]->head; l != NULL; l=l->next){ 
+    u = Q_pop();
+    for (l = adj_list[u]->head; l != NULL; l=l->next){
       Edge e = l->e;
       if (level[e->id] < 0  && e->flow < e->cap){
         level[e->id] = level[u] + 1;
-
         Q_append(e->id);
       }
     }
@@ -272,23 +283,26 @@ int BFS(int s, int t){
 
 
 int sendFlow(int u, int flow, int t, int *start){
+  Link temp;
+  if (DEBUGGING) printf("send_flow\n");
   /* Target reached*/
   if (u == t)
     return flow;
 
   for (  ; start[u] < adj_list[u]->size; start[u]++){
-    Link l = element_at(adj_list[u], start[u]);  
+    Link l = element_at(adj_list[u], start[u]);
     Edge e = l->e;
-   
+
     if (level[e->id] == level[u]+1 && e->flow < e->cap){
       /* find minimum flow from u to t*/
       int curr_flow = min(flow, e->cap - e->flow);
       int temp_flow = sendFlow(e->id, curr_flow, t, start);
       /* flow is greater than zero*/
+
       if (temp_flow > 0){
         /* add flow  to current edge*/
         e->flow += temp_flow;
-        Link temp = element_at(adj_list[e->id],e->rev);
+        temp = element_at(adj_list[e->id],e->rev);
         temp->e->flow -= temp_flow;
         return temp_flow;
       }
@@ -299,17 +313,19 @@ int sendFlow(int u, int flow, int t, int *start){
 }
 
 int DinicMaxflow(int s, int t){
+  int total = 0;
+  int flow;
+
   if (s == t)
       return -1;
 
-  int total = 0;
   /* Augment the flow while there is path
    from source to target*/
   while (BFS(s, t) == 1){
+
     int *start = (int*) calloc(V+1, sizeof(int));
-    
+
     /* while flow is not zero in graph from S to D*/
-    int flow;
     while ((flow = sendFlow(s, INT_MAX, t, start))){
       /* Add path flow to overall flow*/
       total += flow;
@@ -320,20 +336,20 @@ int DinicMaxflow(int s, int t){
   return total;
 }
 
-void print_output(int max_flow, int m, int n){
-  printf("%d\n\n", max_flow);
+void print_output(int max_flow, int n, int m){
   int i,j;
+  printf("%d\n\n", max_flow);
   j=0;
   for(i = 1; i<V-1; i++){
     if(level[i]<0){
       j++;
-      printf("P");
-    } 
+      printf("P ");
+    }
     else{
       j++;
-      printf("C");
+      printf("C ");
     }
-    if(j%n == 0){
+    if(j%m == 0){
       printf("\n");
     }
   }
@@ -344,11 +360,13 @@ int main(){
   int m; /*linhas*/
   int n; /*colunas*/
   int i, j, cap;
+  int max_flow;
   int flow = 0;
+  int *start;
   /* input 1: dims da matriz */
-  scanf("%d %d", &m, &n);
-  lines_n = m;
-  columns_n = n;
+  scanf("%d %d", &n, &m);
+  lines_n = n;
+  columns_n = m;
   /* Number of vertexs*/
   V = m*n + 2;
   /* initialize graph with +2 vertices for the source and target*/
@@ -367,12 +385,12 @@ int main(){
   for(i=1; i < V-1; i++){
     scanf("%d", &cap);
     addEdge(i, V-1, cap);
-    int *start = (int*) calloc(V+1, sizeof(int));
+    start = (int*) calloc(V+1, sizeof(int));
     /*  Otimizacao: Mandar logo o fluxo total. (pois este caminho {s,i,t} e o menor caminho)
     1 - Comparar a capacidade lida do vertice source -> i e i->target.
     2 - Mandar o flow total da capacidade minima.*/
-   if(cap <= adj_list[0]->head->e->cap) flow += sendFlow(0, cap, V+1, start);
-   else flow += sendFlow(0, adj_list[0]->head->e->cap, V+1, start);
+   /*if(cap <= adj_list[0]->head->e->cap) flow += sendFlow(0, cap, V+1, start);
+   else flow += sendFlow(0, adj_list[0]->head->e->cap, V+1, start);*/
    free(start);
   }
   /* input 4: capacidade entre vertices na horizontal */
@@ -389,17 +407,19 @@ int main(){
   for (i=0;i<n-1;i++) { /* itera nas linhas */
     for (j=1;j<=m;j++){  /* itera nas colunas */
       scanf("%d", &cap);
-      addEdge(i*m+j,(i+1)*m+j , cap);
-      addEdge((i+1)*m+j, i*m+j, cap);
+      if (cap > 0) {
+        addEdge(i*m+j,(i+1)*m+j , cap);
+        addEdge((i+1)*m+j, i*m+j, cap);
+      }
     }
   }
   /* for debugging */
-  /*for(i = 0; i<V-1; i++){
-  printf("%d: ", i);
-  print_list(adj_list[i]);
-}*/
-int max_flow = DinicMaxflow(0,V-1);
-print_output(max_flow, m, n);
-return 0;
+  /*if(DEBUGGING)
+    for(i = 0; i<V; i++){
+      printf("%d\t", i);
+      print_list(adj_list[i]);
+    }*/
+  max_flow = DinicMaxflow(0,V-1);
+  print_output(flow+max_flow, n, m);
+  return 0;
 }
-
