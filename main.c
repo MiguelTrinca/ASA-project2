@@ -33,7 +33,8 @@ typedef struct edge{
     int id;
     int flow;
     int cap; /* Capacity*/
-    int rev; /*https://www.geeksforgeeks.org/dinics-algorithm-maximum-flow/*/
+    /*int rev;*/ /*https://www.geeksforgeeks.org/dinics-algorithm-maximum-flow/*/
+    struct edge *rev; /* fints directly to the reverse edged */
 } *Edge;
 
 typedef struct list_node{
@@ -230,16 +231,20 @@ Edge create_edge(int id, int cap){
   e->id = id;
   e->flow = 0;
   e->cap = cap;
-  e->rev = adj_list[id]->size;
+  /*e->rev = adj_list[id]->size;*/
+  e->rev = NULL; /* will be initialized just after */
   return e;
 }
 
 
-void addEdge(int u, int v, int C){
+Edge addEdge(int u, int v, int C){
   Edge a = create_edge(v,C);
   Edge b = create_edge(u,0);
+  a->rev = b;
+  b->rev = a;
   push_back(adj_list[u], a);
   push_back(adj_list[v], b);
+  return a;
 }
 
 void addEdgeSource(int u, int v, int C){
@@ -283,7 +288,7 @@ int BFS(int s, int t){
 
 
 int sendFlow(int u, int flow, int t, int *start){
-  Link temp;
+  /*Link temp;*/
   if (DEBUGGING) printf("send_flow\n");
   /* Target reached*/
   if (u == t)
@@ -302,8 +307,10 @@ int sendFlow(int u, int flow, int t, int *start){
       if (temp_flow > 0){
         /* add flow  to current edge*/
         e->flow += temp_flow;
-        temp = element_at(adj_list[e->id],e->rev);
-        temp->e->flow -= temp_flow;
+        /*temp = element_at(adj_list[e->id],e->rev);
+        temp->e->flow -= temp_flow;*/
+        e->rev->flow -= temp_flow;
+        /*temp = element_at(adj_list[e->id],e->rev);*/
         return temp_flow;
       }
     }
@@ -362,7 +369,11 @@ int main(){
   int i, j, cap;
   int max_flow;
   int flow = 0;
-  int *start;
+  /*int *start;
+  int *cap_source;
+  Edge *source_fast;
+  Edge ed;*/
+
   /* input 1: dims da matriz */
   scanf("%d %d", &n, &m);
   lines_n = n;
@@ -376,22 +387,30 @@ int main(){
   printf("stuff\n");
   push_back(list,create_edge(2,2));
   print_list(list);*/
+
+
+  /*cap_source = (int*) calloc(V, sizeof(int));
+  source_fast = (Edge*) calloc(V, sizeof(Edge));*/
+
   /* input 2: capacidade dos vertices da source (pretos) */
   for(i=1; i < V-1; i++){
     scanf("%d", &cap);
-    addEdge(0, i, cap);
+    /*source_fast[i] =*/ addEdge(0, i, cap);
+    /*cap_source[i]=cap;*/
   }
   /* input 3: capacidade dos vertices do target (pretos) */
   for(i=1; i < V-1; i++){
     scanf("%d", &cap);
     addEdge(i, V-1, cap);
-    start = (int*) calloc(V+1, sizeof(int));
+
+    /*start = (int*) calloc(V+1, sizeof(int));*/
     /*  Otimizacao: Mandar logo o fluxo total. (pois este caminho {s,i,t} e o menor caminho)
     1 - Comparar a capacidade lida do vertice source -> i e i->target.
     2 - Mandar o flow total da capacidade minima.*/
-   /*if(cap <= adj_list[0]->head->e->cap) flow += sendFlow(0, cap, V+1, start);
+   /*if(cap <= adj_list[0]->head->e->cap) {flow += sendFlow(0, cap, V+1, start);
    else flow += sendFlow(0, adj_list[0]->head->e->cap, V+1, start);*/
-   free(start);
+   /*free(start);*/
+
   }
   /* input 4: capacidade entre vertices na horizontal */
   for (i=0;i<n;i++) { /* itera nas linhas */
