@@ -314,7 +314,7 @@ int sendFlow(int u, int flow, int t, int *start){
         return temp_flow;
       }
     }
-    l= l->next;
+    l = l->next;
   }
   return 0;
 }
@@ -329,22 +329,23 @@ int DinicMaxflow(int s, int t){
   /* Augment the flow while there is path
    from source to target*/
   while (BFS(s, t) == 1){
-
     int *start = (int*) calloc(V+1, sizeof(int));
 
     /* while flow is not zero in graph from S to D*/
     while ((flow = sendFlow(s, INT_MAX, t, start))){
       /* Add path flow to overall flow*/
       total += flow;
-      }
-      free(start);
     }
+    free(start);
+  }
 
   return total;
 }
 
 void print_output(int max_flow, int n, int m){
+
   int i,j;
+  BFS(0,V);
   printf("%d\n\n", max_flow);
   j=0;
   for(i = 1; i<V-1; i++){
@@ -398,15 +399,32 @@ int main(){
     if (cap>0) {
       source_fast[i] = addEdge(0, i, cap);
       cap_source[i]=cap;
+    } else {
+      source_fast[i] = NULL;
+      cap_source[i]=0;
     }
   }
   /* input 3: capacidade dos vertices do target (pretos) */
   for(i=1; i < V-1; i++){
     scanf("%d", &cap);
     if (cap > 0) {
-      addEdge(i, V-1, cap);
+      ed = addEdge(i, V-1, cap);
+      if (cap_source[i]){
+        if (cap <= cap_source[i]) { /* se capacidade meio>->target >= source>->meio*/
+          source_fast[i]->flow = cap; /* updates flow source>meio */
+          source_fast[i]->rev->flow = -cap; /* updates flow source>meio */
+          ed->flow = cap;
+          ed->rev->flow = -cap;
+          flow += cap;
+        } else {
+          source_fast[i]->flow = cap_source[i]; /* updates flow source>meio */
+          source_fast[i]->rev->flow = -cap_source[i]; /* updates flow source>meio */
+          ed->flow = cap_source[i];
+          ed->rev->flow = -cap_source[i];
+          flow += cap_source[i];
+        }
+      }
     }
-
     /*start = (int*) calloc(V+1, sizeof(int));*/
     /*  Otimizacao: Mandar logo o fluxo total. (pois este caminho {s,i,t} e o menor caminho)
     1 - Comparar a capacidade lida do vertice source -> i e i->target.
@@ -444,5 +462,8 @@ int main(){
     }*/
   max_flow = DinicMaxflow(0,V-1);
   print_output(flow+max_flow, n, m);
+
+  free(cap_source);
+  free(source_fast);
   return 0;
 }
