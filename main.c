@@ -39,7 +39,6 @@ typedef struct edge{
 
 typedef struct list_node{
     Edge e;
-    struct list_node *prev;
     struct list_node *next;
 } *Link;
 
@@ -84,9 +83,7 @@ void push_front(list_t *list, Edge e){
       list->back = new;
     } else {
       new->next = list->head;
-      list->head->prev = new;
     }
-    new->prev = NULL;
     list->head = new;
     list->size += 1;
 }
@@ -96,10 +93,8 @@ void push_back(list_t *list, Edge e){
   new->e = e;
   new->next = NULL;
   if (list->back == NULL) {
-    new->prev = NULL;
     list->head = new;
   } else {
-    new->prev = list->back;
     list->back->next = new;
   }
   list->back = new;
@@ -132,12 +127,6 @@ void free_list(list_t *list){
     free(l);
     l=temp;
   }
-}
-
-void print_list_reverse(list_t *list){
-  Link l;
-  if(DEBUGGING) for (l=list->back; l!=NULL; l=l->prev) printf("%d |", l->e->id);
-    if(DEBUGGING) printf("\n");
 }
 
 
@@ -194,8 +183,9 @@ int Q_front(){
 
 int Q_pop() { /* pops from the front */
   Queue tmp = Q.head;
-  int retVal = Q.head->i;
-  if (Q.head == NULL) return -1;
+  int retVal;
+  if (Q.head == NULL) exit(1);
+  retVal = Q.head->i;
   Q.head = Q.head->next;
   free(tmp);
   return retVal; /* returns -1 in case of error */
@@ -214,7 +204,7 @@ void print_Q(){
 
 void init_graph(int vertex){
     int id;
-    adj_list = (list_t **) calloc(vertex+1, sizeof(list_t*));     /* A source vai ser 0 e o target vai ser V+1*/
+    adj_list = (list_t **) malloc((vertex+1)*sizeof(list_t*));     /* A source vai ser 0 e o target vai ser V+1*/
     level = (int *) malloc(sizeof(int)*vertex);
     for (id=0; id < vertex+1; id++) {
         adj_list[id] = init_list();   /* Mete todos os ponteiro do array a NULL; Ou seja inicializa as listas*/
@@ -326,10 +316,7 @@ int sendFlow(int u, int flow, int t, int *start){
       if (temp_flow > 0){
         /* add flow  to current edge*/
         e->flow += temp_flow;
-        /*temp = element_at(adj_list[e->id],e->rev);
-        temp->e->flow -= temp_flow;*/
         e->rev->flow -= temp_flow;
-        /*temp = element_at(adj_list[e->id],e->rev);*/
         return temp_flow;
       }
     }
@@ -408,8 +395,8 @@ int main(){
   print_list(list);*/
 
 
-  cap_source = (int*) calloc(V, sizeof(int));
-  source_fast = (Edge*) calloc(V, sizeof(Edge));
+  cap_source = (int*) malloc((V+1)*sizeof(int));
+  source_fast = (Edge*) malloc((V+1)*sizeof(Edge));
 
   /* input 2: capacidade dos vertices da source (pretos) */
   for(i=1; i < V-1; i++){
