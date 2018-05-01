@@ -123,6 +123,17 @@ void print_list(list_t *list){
   printf("\n");
 }
 
+void free_list(list_t *list){
+  Link l;
+  Link temp;
+  for (l=list->head; l!=NULL; ){
+    temp = l->next;
+    free(l->e);
+    free(l);
+    l=temp;
+  }
+}
+
 void print_list_reverse(list_t *list){
   Link l;
   if(DEBUGGING) for (l=list->back; l!=NULL; l=l->prev) printf("%d |", l->e->id);
@@ -210,6 +221,14 @@ void init_graph(int vertex){
     }
 }
 
+void destroy_graph(int vertex){
+  int id;
+  free(level);
+  for (id=0; id < vertex+1; id++) {
+      free_list(adj_list[id]);   /* Mete todos os ponteiro do array a NULL; Ou seja inicializa as listas*/
+  }
+}
+
 void print_flow_graph(){
   int i,j; /* i-linhas; m-colunas */
   printf("%sFlow from source\n", CYAN);
@@ -281,7 +300,7 @@ int BFS(int s, int t){
         Q_append(e->id);
       }
     }
-   }
+  }
   return level[t] < 0 ? 0 : 1 ;
 }
 
@@ -345,7 +364,6 @@ int DinicMaxflow(int s, int t){
 void print_output(int max_flow, int n, int m){
 
   int i,j;
-  BFS(0,V);
   printf("%d\n\n", max_flow);
   j=0;
   for(i = 1; i<V-1; i++){
@@ -434,6 +452,10 @@ int main(){
    /*free(start);*/
 
   }
+
+  free(cap_source);
+  free(source_fast);
+
   /* input 4: capacidade entre vertices na horizontal */
   for (i=0;i<n;i++) { /* itera nas linhas */
     for (j=1;j<m;j++){ /* itera nas colunas */
@@ -462,8 +484,7 @@ int main(){
     }*/
   max_flow = DinicMaxflow(0,V-1);
   print_output(flow+max_flow, n, m);
+  destroy_graph(V);
 
-  free(cap_source);
-  free(source_fast);
   return 0;
 }
