@@ -369,10 +369,10 @@ int main(){
   int i, j, cap;
   int max_flow;
   int flow = 0;
-  /*int *start;
+  /*int *start;*/
   int *cap_source;
   Edge *source_fast;
-  Edge ed;*/
+  Edge ed;
 
   /* input 1: dims da matriz */
   scanf("%d %d", &n, &m);
@@ -389,19 +389,23 @@ int main(){
   print_list(list);*/
 
 
-  /*cap_source = (int*) calloc(V, sizeof(int));
-  source_fast = (Edge*) calloc(V, sizeof(Edge));*/
+  cap_source = (int*) calloc(V, sizeof(int));
+  source_fast = (Edge*) calloc(V, sizeof(Edge));
 
   /* input 2: capacidade dos vertices da source (pretos) */
   for(i=1; i < V-1; i++){
     scanf("%d", &cap);
-    /*source_fast[i] =*/ addEdge(0, i, cap);
-    /*cap_source[i]=cap;*/
+    if (cap>0) {
+      source_fast[i] = addEdge(0, i, cap);
+      cap_source[i]=cap;
+    }
   }
   /* input 3: capacidade dos vertices do target (pretos) */
   for(i=1; i < V-1; i++){
     scanf("%d", &cap);
-    addEdge(i, V-1, cap);
+    if (cap > 0) {
+      addEdge(i, V-1, cap);
+    }
 
     /*start = (int*) calloc(V+1, sizeof(int));*/
     /*  Otimizacao: Mandar logo o fluxo total. (pois este caminho {s,i,t} e o menor caminho)
