@@ -113,8 +113,9 @@ typedef struct queue_node{
 
 /* contains information about the queue */
 typedef struct queue_t {
-  Queue head;
-  Queue back;
+  int *head;
+  int front;
+  int back;
 } queue_t; /* list type*/
 
 /*Queue Q;*/
@@ -122,49 +123,40 @@ queue_t Q;
 
 
 void init_Queue(){
-  Q.head = NULL;
-  Q.back = NULL;
+  Q.front = 0;
+  Q.back = 0;
+  Q.head = (int*) malloc(sizeof(int)*V);
+}
+
+void reset_Q(){
+  Q.front = 0;
+  Q.back = 0;
 }
 
 void Q_append(int i){ /* adds element to the back of the list */
-    Queue new = (Queue) malloc(sizeof(struct queue_node));
-    new->i = i;
-    new->next = NULL;
-
-    if (Q.head == NULL) {
-      Q.head = new;
-      new->prev = NULL;
-    } else {
-      new->prev = Q.back;
-      Q.back->next = new;
-    }
-    Q.back = new;
-    return;
+  Q.head[Q.back] = i;
+  Q.back += 1;
 }
 
 int Q_empty(){
-  return (Q.head == NULL);
+  return (Q.front == Q.back);
 }
 
 int Q_front(){
-  return Q.head->i;
+  return Q.head[Q.front];
 }
 
 int Q_pop() { /* pops from the front */
-  Queue tmp = Q.head;
-  int retVal;
-  if (Q.head == NULL) exit(1);
-  retVal = Q.head->i;
-  Q.head = Q.head->next;
-  free(tmp);
-  return retVal; /* returns -1 in case of error */
+  int retVal = Q.head[Q.front];
+  Q.front += 1;
+  return retVal;
 }
 
 void print_Q(){
-  Queue q;
-  for (q = Q.head; q != NULL; q=q->next)
-      if(DEBUGGING) printf("%d |", q->i);
-  if(DEBUGGING) printf("\n");
+  int i;
+  for (i=0; i<(Q.back - Q.front); i++){
+    if(DEBUGGING) printf("%d |", Q.head[Q.front+i]);
+  }
 }
 
 /*
@@ -228,7 +220,7 @@ int BFS(int s, int t){
 
   level[s] = 0;  /* Level of source vertex*/
 
-  init_Queue();
+  reset_Q();
 
   Q_append(s);
 
@@ -338,6 +330,8 @@ int main(){
   V = m*n + 2;
   /* initialize graph with +2 vertices for the source and target*/
   init_graph(V);
+  init_Queue();
+
   /*list_t *list = init_list();
   push_back(list,create_edge(1,1));
   printf("stuff\n");
