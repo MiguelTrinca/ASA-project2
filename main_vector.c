@@ -1,3 +1,7 @@
+/* ist186414 Francisco Rocha
+   ist186490 Miguel Trinca
+   2o projeto de ASA      */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -16,24 +20,11 @@
 #define WHITE  "\x1B[37m"
 
 #define DEBUGGING 0
-/*
-  Otimizacao! Quando estamos a ler o input podemos logo descobrir os caminhos e flows de distancia 3.
-*/
-
-/*TODO
-    Ler o input 4 e 5 o 4 esta a dar problemas
-    Implementar a otimizacao
-    SendFlow temos que pensar de maneira diferente. Nao da para fazer como ele esta
-    a fazer.
-    MaxFlow
-*/
-
 
 typedef struct edge{
     int id;
     int flow;
     int cap; /* Capacity*/
-    /*int rev;*/ /*https://www.geeksforgeeks.org/dinics-algorithm-maximum-flow/*/
     struct edge *rev; /* fints directly to the reverse edged */
 } *Edge;
 
