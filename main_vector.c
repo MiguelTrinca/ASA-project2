@@ -33,7 +33,7 @@ typedef struct edge{
     int id;
     int flow;
     int cap; /* Capacity*/
-    /*int rev;*/ /*https://www.geeksforgeeks.org/dinics-algorithm-maximum-flow/*/
+    /*int rev;*/
     struct edge *rev; /* fints directly to the reverse edged */
 } *Edge;
 
@@ -47,6 +47,7 @@ typedef struct list_t {
   Edge *head;
   int size;
   Link back;
+  int max_size;
 } list_t; /* list type*/
 
 
@@ -68,10 +69,13 @@ int edges_sz = 0; /* keeps track of edges's size */
 
 
 list_t* init_list(int max_size){
-  list_t* new_list = (list_t*) malloc(sizeof(list_t));
+  list_t* new_list;
+
+  new_list = (list_t*) malloc(sizeof(list_t));
   new_list->head = (Edge*) malloc(max_size*sizeof(Edge));
   new_list->size = 0;
   new_list->back = NULL;
+  new_list->max_size = max_size;
   return new_list;
 }
 
@@ -163,14 +167,14 @@ void print_Q(){
  *  Graph Operation
  */
 
-void init_graph(int vertex){
+void init_graph(int vertex, int* n_edges){
     int id=0;
     adj_list = (list_t **) malloc((vertex+1)*sizeof(list_t*));     /* A source vai ser 0 e o target vai ser V+1*/
     level = (int *) malloc(sizeof(int)*vertex);
 
-    adj_list[id] = init_list(vertex);   /* initilizing source */
+    adj_list[0] = init_list(vertex);   /* initilizing source */
     for (id=1; id < vertex+1; id++) {
-        adj_list[id] = init_list(10);   /* Mete todos os ponteiro do array a NULL; Ou seja inicializa as listas*/
+        adj_list[id] = init_list(n_edges[id]);   /* Mete todos os ponteiro do array a NULL; Ou seja inicializa as listas*/
         /* each node in the photograh plane has at most 9 edges including reverse ones */
     }
 }
@@ -185,7 +189,9 @@ void destroy_graph(int vertex){
 }
 
 Edge create_edge(int id, int cap){
-  Edge e = &edges[edges_sz++];
+  Edge e;
+  /*printf("edges_added %d\n", edges_sz);*/
+  e = &edges[edges_sz++];
   e->id = id;
   e->flow = 0;
   e->cap = cap;
@@ -279,7 +285,7 @@ int DinicMaxflow(int s, int t){
   while (BFS(s, t) == 1){
     int *start = (int*) calloc(V+1, sizeof(int));
 
-    /* while flow is not zero in graph from S to D*/
+    /* while flow is not zero in graph from S to T*/
     while ((flow = sendFlow(s, INT_MAX, t, start))){
       /* Add path flow to overall flow*/
       total += flow;
@@ -322,26 +328,110 @@ int main(){
   Edge *source_fast;
   Edge ed;
 
+  /* just storing the structures */
+  int *v_source;
+  int *v_target;
+  int *horizont;
+  int *vertical;
+
+  /* auxiliary vector for the graph creation
+  contains the edges goind from each vertex */
+  int *n_edges;
+  int edges_total; /* total number of edges */
+
   /* input 1: dims da matriz */
   scanf("%d %d", &n, &m);
   lines_n = n;
   columns_n = m;
   /* Number of vertexs*/
   V = m*n + 2;
-  /* initialize graph with +2 vertices for the source and target*/
-  init_graph(V);
-  init_Queue();
 
-  /*list_t *list = init_list();
-  push_back(list,create_edge(1,1));
-  printf("stuff\n");
-  push_back(list,create_edge(2,2));
-  print_list(list);*/
+  /* just storing the structures */
+  v_source = (int*) malloc(V*sizeof(int));
+  v_target = (int*) malloc(V*sizeof(int));
+  horizont = (int*) malloc(V*sizeof(int));
+  vertical = (int*) malloc(V*sizeof(int));
+  n_edges  = (int*) calloc(V,sizeof(int));
+
+
+
+
+  /**********************************
+          P A R T   O N E
+  storing the input Temporarily to count
+  the number of edges each vertex has.
+  **********************************/
+
+  /* input 2: capacidade dos vertices da source (pretos) */
+  for(i=1; i < V-1; i++){
+    scanf("%d", &cap);
+    v_source[i] = cap;
+    if (cap>0) {
+      n_edges[0]++;
+      n_edges[i]++;
+      edges_total+=2;
+    }
+  }
+  /* input 3: capacidade dos vertices do target (pretos) */
+  for(i=1; i < V-1; i++){
+    scanf("%d", &cap);
+    v_target[i] = cap;
+    if (cap>0) {
+      n_edges[i]++;
+      edges_total++;
+    }
+  }
+
+  /* input 4: capacidade entre vertices na horizontal */
+  for (i=0;i<n;i++) { /* itera nas linhas */
+    for (j=1;j<m;j++){ /* itera nas colunas */
+      scanf("%d", &cap);
+      horizont[i*m + j] = cap;
+      if (cap>0) {
+        n_edges[i*m + j]+=2;
+        n_edges[i*m + j + 1]+=2;
+        edges_total+=4;
+      }
+    }
+  }
+
+  /* input 5: capacidade entre vertices na vertical */
+  for (i=0;i<n-1;i++) { /* itera nas linhas */
+    for (j=1;j<=m;j++){  /* itera nas colunas */
+      scanf("%d", &cap);
+      vertical[i*m + j] = cap;
+      if (cap>0) {
+        n_edges[i*m + j]+=2;
+        n_edges[(i+1)*m + j]+=2;
+        edges_total+=4;
+
+      }
+    }
+  }
+
+
+  /* initialize graph with +2 vertices for the source and target*/
+  init_graph(V,n_edges);
+  init_Queue();
 
   /* each edge has the right to 9 edges at most*/
   /* target has no edges */
   edges = (Edge) malloc((11*(m*n))*sizeof(struct edge));
+  /*printf("edges_total %d\n", edges_total);*/
+  /*printf("edges_expected %d\n", 11*(m*n));*/
+  /*edges = (Edge) malloc((edges_total+m*n)*sizeof(struct edge));*/
   edges_sz = 0;
+
+  /*printf("%d\n", n_edges[0]);
+  for (i=0;i<n;i++) {
+    for (j=1;j<m+1;j++){
+      printf("%d ", n_edges[i*m+j]);
+    } printf("\n");
+  } printf("\n" );
+  printf("%d ", n_edges[V-1]);*/
+
+
+
 
 
   cap_source = (int*) malloc((V+1)*sizeof(int));
@@ -349,7 +439,8 @@ int main(){
 
   /* input 2: capacidade dos vertices da source (pretos) */
   for(i=1; i < V-1; i++){
-    scanf("%d", &cap);
+    cap = v_source[i];
+
     if (cap>0) {
       ed = create_edge(i,cap); /* same as addEdge but with no reverse */
       push_back(adj_list[0], ed);
@@ -367,7 +458,7 @@ int main(){
   }
   /* input 3: capacidade dos vertices do target (pretos) */
   for(i=1; i < V-1; i++){
-    scanf("%d", &cap);
+    cap = v_target[i];
     if (cap > 0) {
       ed = create_edge(V-1,cap); /* to the target needs no reverse */
       push_back(adj_list[i], ed);
@@ -399,7 +490,7 @@ int main(){
   /* input 4: capacidade entre vertices na horizontal */
   for (i=0;i<n;i++) { /* itera nas linhas */
     for (j=1;j<m;j++){ /* itera nas colunas */
-      scanf("%d", &cap);
+      cap = horizont[i*m + j];
       if (cap > 0) {
         addEdge(i*m + j, i*m+j+1, cap);
         addEdge(i*m+j+1, i*m + j, cap);
@@ -409,13 +500,18 @@ int main(){
   /* input 5: capacidade entre vertices na vertical */
   for (i=0;i<n-1;i++) { /* itera nas linhas */
     for (j=1;j<=m;j++){  /* itera nas colunas */
-      scanf("%d", &cap);
+      cap = vertical[i*m + j];
       if (cap > 0) {
         addEdge(i*m+j,(i+1)*m+j , cap);
         addEdge((i+1)*m+j, i*m+j, cap);
       }
     }
   }
+
+
+
+
+
   /* for debugging */
   /*for(i = 0; i<V; i++){
     printf("%d\t", i);
